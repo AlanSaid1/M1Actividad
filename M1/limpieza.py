@@ -6,9 +6,11 @@
 #           A01746210 Alan Said Martinez Guzman
 #           A01752789 Luis Humberto Romero Perez
 # 
-# Simulación de agentes capaces de limpiar celdas representadas
-# por una tupla, donde los movimientos de los agentes son
-# automatizados capaces de moverse por toda la tupla.
+# Simulación de agentes capaces de limpiar celdas de una tupla
+# que contienen objetos situados aleatoriamente. Siendo los
+# movimientos de los agentes automatizados logrando moverse por
+# toda la tupla hasta lograr limpiarla por completo o que el tiempo
+# se haya agotado.
 #--------------------------------------------------------------
 
 from mesa import Agent, Model
