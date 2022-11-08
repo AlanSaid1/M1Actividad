@@ -14,8 +14,10 @@ class Celda(Agent):
     def step(self):
         contenido = len(self.model.grid.get_cell_list_contents(self.pos))
         if (contenido > 1):
-            self.sigEstado = 'limpia'
-            print(f"Limpie la celda {self.pos}")
+            if (self.estado == 'sucia'):
+                self.sigEstado = 'limpia'
+                self.model.celdasLimpias += 1
+                # print(f"Limpie la celda {self.pos}")
         else:
             self.sigEstado = self.estado
 
@@ -28,21 +30,24 @@ class LimpiadorAgente(Agent):
         super().__init__(unique_id, model)
         self.sigEstado = None
         self.estado = 'limpiador'
+        self.movimientos = 0
 
     def step(self):
         # Limpiar celda
         if (self.pos in self.model.coordenadasSucias):
             self.model.coordenadasSucias.remove(self.pos)
-        # Moverse
-        vecinos = self.model.grid.get_neighborhood(self.pos, moore=True,
-                                                   include_center=False)
-        nuevaPosicion = self.random.choice(vecinos)
-        contenido = self.model.grid.get_cell_list_contents(nuevaPosicion)
-        if (not self.model.grid.out_of_bounds(nuevaPosicion) and
-                (not (len(contenido) > 1))):
-            self.sigEstado = nuevaPosicion
         else:
-            self.sigEstado = self.pos
+            # Moverse
+            vecinos = self.model.grid.get_neighborhood(self.pos, moore=True,
+                                                       include_center=False)
+            nuevaPosicion = self.random.choice(vecinos)
+            contenido = self.model.grid.get_cell_list_contents(nuevaPosicion)
+            if (not self.model.grid.out_of_bounds(nuevaPosicion) and
+                    ((len(contenido) <= 1))):
+                self.sigEstado = nuevaPosicion
+                self.movimientos += 1
+            else:
+                self.sigEstado = self.pos
 
     def advance(self):
         self.model.grid.move_agent(self, self.sigEstado)
@@ -55,7 +60,9 @@ class LimpiadorModelo(Model):
         self.schedule = SimultaneousActivation(self)
         self.running = True
         self.celdasSucias = (ancho * alto * suciedad) // 100
+        self.celdasLimpias = 0
         self.coordenadasSucias = []
+        self.tiempoMax = tiempoMax
         self.tiempo = tiempoMax
 
         # Crear y registrar celdas sucias
@@ -83,6 +90,10 @@ class LimpiadorModelo(Model):
     def step(self):
         if (len(self.coordenadasSucias) <= 0 or self.tiempo <= 0):
             self.running = False
+            print(f"Tiempo que tardo en limpiar: \
+                {self.tiempoMax - self.tiempo}")
+            print(f"Porcentaje de celdas sucias limpiadas: \
+                {(self.celdasLimpias * 100) / self.celdasSucias}%")
             return
         else:
             self.tiempo -= 1
