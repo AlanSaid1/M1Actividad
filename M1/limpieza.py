@@ -82,7 +82,8 @@ class limpiadorAgente(Agent):
                     (nuevaPosicion not in self.model.posicionesSiguientes)):
                 self.sigEstado = nuevaPosicion
                 self.model.grid.move_agent(self, self.sigEstado)
-                self.model.posicionesSiguientes[self.unique_id] = nuevaPosicion
+                self.model.posicionesSiguientes[self.unique_id
+                                                ] = self.sigEstado
                 self.movimientos += 1
             else:
                 self.sigEstado = self.pos
