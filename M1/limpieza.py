@@ -18,9 +18,9 @@ from mesa.space import MultiGrid
 from mesa.time import SimultaneousActivation
 
 # Estas librerias contienen 3 metodos; agents, scheduler y model
-# Agents: Permite manipular a los agentes en tanto a sus movimientos y 
+# Agents: Permite manipular a los agentes en tanto a sus movimientos y
 # caracteristicas.
-# Scheduler: Es un modelo especial que controla el orden en el que los 
+# Scheduler: Es un modelo especial que controla el orden en el que los
 # agentes son activados.
 # Model: Es la visualización.
 
@@ -68,6 +68,7 @@ class limpiadorAgente(Agent):
         if (self.pos in self.model.coordenadasSucias):
             self.model.coordenadasSucias.remove(self.pos)
             self.sigEstado = self.pos
+            self.model.posicionesSiguientes[self.unique_id] = self.pos
         # El agente se mueve.
         else:
             vecinos = self.model.grid.get_neighborhood(self.pos, moore=True,
@@ -77,12 +78,15 @@ class limpiadorAgente(Agent):
             nuevaPosicion = self.random.choice(vecinos)
             contenido = self.model.grid.get_cell_list_contents(nuevaPosicion)
             if (not self.model.grid.out_of_bounds(nuevaPosicion) and
-                    ((len(contenido) <= 1))):
+                    ((len(contenido) <= 1)) and
+                    (nuevaPosicion not in self.model.posicionesSiguientes)):
                 self.sigEstado = nuevaPosicion
                 self.model.grid.move_agent(self, self.sigEstado)
+                self.model.posicionesSiguientes[self.unique_id] = nuevaPosicion
                 self.movimientos += 1
             else:
                 self.sigEstado = self.pos
+                self.model.posicionesSiguientes[self.unique_id] = self.pos
 
     # Avanza a la siguiente casilla de la tupla.
     def advance(self):
@@ -104,8 +108,9 @@ class limpiadorModelo(Model):
         self.coordenadasSucias = []
         self.tiempoMax = tiempoMax
         self.tiempo = tiempoMax
+        self.posicionesSiguientes = {}
 
-        # Crear y registrar las celdas sucias tomando en cuenta nuestro alto 
+        # Crear y registrar las celdas sucias tomando en cuenta nuestro alto
         # y ancho de tupla aleatoriamente.
         id = 0
         for _ in range(self.celdasSucias):
